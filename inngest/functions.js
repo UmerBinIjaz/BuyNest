@@ -3,20 +3,26 @@ import { inngest } from "./client";
 
 // Inngest Function to save user data to a database
 export const syncUserCreation = inngest.createFunction(
-    {id: 'sync-user-create'},
-    {event: 'clerk/user.created'},
-    async (event) => {
-        const {data} = event
-        await prisma.user.create({
-            data: {
-                id: data.id,
-                email: data.email_addresses[0].email_address,
-                name: `${data.first_name} ${data.last_name}`,
-                image: data.image_url,
-            }
-        })
+  { id: "sync-user-create" },
+  { event: "clerk/user.created" },
+  async ({ event, step }) => {
+    try {
+      const { data } = event;
+      await prisma.user.create({
+        data: {
+          id: data.id,
+          email: data.email_addresses[0].email_address,
+          name: `${data.first_name} ${data.last_name}`,
+          image: data.image_url,
+        },
+      });
+    } catch (err) {
+      console.error("❌ Prisma insert failed:", err);
+      throw err; // Let Inngest retry if needed
     }
-)
+  }
+);
+
 
 export const SyncUserUpdation = inngest.createFunction(
     {id: 'sync-user-update'},
@@ -32,7 +38,7 @@ export const SyncUserUpdation = inngest.createFunction(
             }
         })
     }
-)
+);
 
 export const syncUserDeletion = inngest.createFunction(
     {id: 'sync-user-delete'},
@@ -43,5 +49,5 @@ export const syncUserDeletion = inngest.createFunction(
             where: {id: data.id,}
         })
     }
-)
+);
 
