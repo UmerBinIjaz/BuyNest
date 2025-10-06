@@ -63,6 +63,6 @@ export const deleteCouponOnExpiry = inngest.createFunction(
             await prisma.coupon.delete({
                 where: {code: data.code}
             })
-        }
+        })
     }
 );
