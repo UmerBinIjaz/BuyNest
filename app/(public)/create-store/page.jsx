@@ -4,8 +4,15 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"
+import { useAuth, useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import axios from "axios"
 
 export default function CreateStore() {
+
+    const {user} = useUser()
+    const router = useRouter()
+    const {getToken} = useAuth()
 
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState("")
@@ -28,21 +35,88 @@ export default function CreateStore() {
 
     const fetchSellerStatus = async () => {
         // Logic to check if the store is already submitted
-
-
+        const token = await getToken()
+        try {
+            const {data} = await axios.get("/api/store/create", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            if(["pending", "approved", "rejected"].includes(data.status)){
+                setAlreadySubmitted(true)
+                setStatus(data.status)
+                switch (data.status) {
+                    case "pending":
+                        setMessage("Your store application is under review. We will notify you once it's approved.")
+                        break;
+                    case "approved":
+                        setMessage("Congratulations! Your store has been approved. Redirecting you to your store...")
+                        setTimeout(() => {
+                            router.push("/store")
+                        }, 5000);
+                        break;
+                    case "rejected":
+                        setMessage("Unfortunately, your store application has been rejected. You can contact the admin for more details.")
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else{
+                setAlreadySubmitted(false)
+            }
+        } catch (error) {
+            toast.error(error?.response?.data.error || error.message)
+        }
         setLoading(false)
     }
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
         // Logic to submit the store details
+        if(!user){
+            toast.error("You must be logged in to create a store")
+        }
 
+        try {
+            const token = await getToken()
+            const formData = new FormData();
+            formData.append("name", storeInfo.name);
+            formData.append("username", storeInfo.username);
+            formData.append("description", storeInfo.description);
+            formData.append("email", storeInfo.email);
+            formData.append("contact", storeInfo.contact);
+            formData.append("address", storeInfo.address);
+            formData.append("image", storeInfo.image);
+
+            const {data} = await axios.post("/api/store/create", formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                }
+            })
+
+            toast.success(data.message)
+            await fetchSellerStatus()
+        } catch (error) {
+            toast.error(error?.response?.data.error || error.message)
+        }
 
     }
 
     useEffect(() => {
-        fetchSellerStatus()
-    }, [])
+        if(user){
+            fetchSellerStatus()
+        }
+    }, [user])
+
+    if(!user){
+        return (
+            <div className="min-h-[80vh] flex items-center justify-center text-slate-400">
+                <h1 className="text-2xl sm:text-4xl font-semibold">Please <span className="text-slate-500">Login</span> to continue</h1>
+            </div>
+        )
+    }
 
     return !loading ? (
         <>
@@ -58,26 +132,26 @@ export default function CreateStore() {
                         <label className="mt-10 cursor-pointer">
                             Store Logo
                             <Image src={storeInfo.image ? URL.createObjectURL(storeInfo.image) : assets.upload_area} className="rounded-lg mt-2 h-16 w-auto" alt="" width={150} height={100} />
-                            <input type="file" accept="image/*" onChange={(e) => setStoreInfo({ ...storeInfo, image: e.target.files[0] })} hidden />
+                            <input required type="file" accept="image/*" onChange={(e) => setStoreInfo({ ...storeInfo, image: e.target.files[0] })} hidden />
                         </label>
 
                         <p>Username</p>
-                        <input name="username" onChange={onChangeHandler} value={storeInfo.username} type="text" placeholder="Enter your store username" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
+                        <input required name="username" onChange={onChangeHandler} value={storeInfo.username} type="text" placeholder="Enter your store username" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
 
                         <p>Name</p>
-                        <input name="name" onChange={onChangeHandler} value={storeInfo.name} type="text" placeholder="Enter your store name" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
+                        <input required name="name" onChange={onChangeHandler} value={storeInfo.name} type="text" placeholder="Enter your store name" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
 
                         <p>Description</p>
-                        <textarea name="description" onChange={onChangeHandler} value={storeInfo.description} rows={5} placeholder="Enter your store description" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none" />
+                        <textarea required name="description" onChange={onChangeHandler} value={storeInfo.description} rows={5} placeholder="Enter your store description" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none" />
 
                         <p>Email</p>
-                        <input name="email" onChange={onChangeHandler} value={storeInfo.email} type="email" placeholder="Enter your store email" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
+                        <input required name="email" onChange={onChangeHandler} value={storeInfo.email} type="email" placeholder="Enter your store email" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
 
                         <p>Contact Number</p>
-                        <input name="contact" onChange={onChangeHandler} value={storeInfo.contact} type="text" placeholder="Enter your store contact number" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
+                        <input required name="contact" onChange={onChangeHandler} value={storeInfo.contact} type="text" placeholder="Enter your store contact number" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded" />
 
                         <p>Address</p>
-                        <textarea name="address" onChange={onChangeHandler} value={storeInfo.address} rows={5} placeholder="Enter your store address" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none" />
+                        <textarea required name="address" onChange={onChangeHandler} value={storeInfo.address} rows={5} placeholder="Enter your store address" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none" />
 
                         <button className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition ">Submit</button>
                     </form>

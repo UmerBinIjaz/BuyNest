@@ -4,9 +4,13 @@ import { format } from "date-fns"
 import toast from "react-hot-toast"
 import { DeleteIcon } from "lucide-react"
 import { couponDummyData } from "@/assets/assets"
+import { useUser, useAuth } from "@clerk/nextjs"
+import axios from "axios"
 
 export default function AdminCoupons() {
 
+    const {user} = useUser() 
+    const {getToken} = useAuth()
     const [coupons, setCoupons] = useState([])
 
     const [newCoupon, setNewCoupon] = useState({
@@ -20,13 +24,38 @@ export default function AdminCoupons() {
     })
 
     const fetchCoupons = async () => {
-        setCoupons(couponDummyData)
+        try {
+            const token = await getToken()
+            const { data } = await axios.get('/api/admin/coupon', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setCoupons(data.coupons)          
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }  
     }
 
     const handleAddCoupon = async (e) => {
         e.preventDefault()
         // Logic to add a coupon
+        try {
+            const token = await getToken()
+            
+            newCoupon.discount = Number(newCoupon.discount);
+            newCoupon.expiresAt = new Date(newCoupon.expiresAt);
 
+            const { data } = await axios.post('/api/admin/coupon', { coupon: newCoupon }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })   
+            toast.success(data.message)
+            await fetchCoupons();         
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
 
     }
 
@@ -36,12 +65,25 @@ export default function AdminCoupons() {
 
     const deleteCoupon = async (code) => {
         // Logic to delete a coupon
-
-
+        try {
+            const confirm = window.confirm("Are you sure you want to delete this coupon?")
+            if(!confirm) return;
+            
+            const token = await getToken()
+            await axios.delete(`/api/admin/coupon?code=${code}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })   
+            await fetchCoupons();
+            toast.success("Coupon deleted successfully.")
+        } catch (error) {
+            toast.error(error?.response?.data?.error || error.message)
+        }
     }
 
     useEffect(() => {
-        fetchCoupons();
+            fetchCoupons();
     }, [])
 
     return (
@@ -113,19 +155,28 @@ export default function AdminCoupons() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
-                            {coupons.map((coupon) => (
-                                <tr key={coupon.code} className="hover:bg-slate-50">
-                                    <td className="py-3 px-4 font-medium text-slate-800">{coupon.code}</td>
-                                    <td className="py-3 px-4 text-slate-800">{coupon.description}</td>
-                                    <td className="py-3 px-4 text-slate-800">{coupon.discount}%</td>
-                                    <td className="py-3 px-4 text-slate-800">{format(coupon.expiresAt, 'yyyy-MM-dd')}</td>
-                                    <td className="py-3 px-4 text-slate-800">{coupon.forNewUser ? 'Yes' : 'No'}</td>
-                                    <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
-                                    <td className="py-3 px-4 text-slate-800">
-                                        <DeleteIcon onClick={() => toast.promise(deleteCoupon(coupon.code), { loading: "Deleting coupon..." })} className="w-5 h-5 text-red-500 hover:text-red-800 cursor-pointer" />
-                                    </td>
-                                </tr>
-                            ))}
+                        {Array.isArray(coupons) && coupons.map((coupon) => (
+                            <tr key={coupon.code} className="hover:bg-slate-50">
+                                <td className="py-3 px-4 font-medium text-slate-800">{coupon.code}</td>
+                                <td className="py-3 px-4 text-slate-800">{coupon.description}</td>
+                                <td className="py-3 px-4 text-slate-800">{coupon.discount}%</td>
+                                <td className="py-3 px-4 text-slate-800">
+                                    {format(new Date(coupon.expiresAt), 'yyyy-MM-dd')}
+                                </td>
+                                <td className="py-3 px-4 text-slate-800">{coupon.forNewUser ? 'Yes' : 'No'}</td>
+                                <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
+                                <td className="py-3 px-4 text-slate-800">
+                                    <DeleteIcon
+                                        onClick={() =>
+                                            toast.promise(deleteCoupon(coupon.code), {
+                                                loading: "Deleting coupon..."
+                                            })
+                                        }
+                                        className="w-5 h-5 text-red-500 hover:text-red-800 cursor-pointer"
+                                    />
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
