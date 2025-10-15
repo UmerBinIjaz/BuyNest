@@ -59,6 +59,79 @@ export default function StoreOrders() {
         setIsModalOpen(false)
     }
 
+    const handlePrintInvoice = (order) => {
+        const printWindow = window.open('', '_blank');
+        const invoiceHTML = `
+            <html>
+                <head>
+                    <title>Invoice - ${order.id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+                        h1 { text-align: center; color: #444; }
+                        .section { margin-bottom: 20px; }
+                        .details p { margin: 2px 0; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                        th { background-color: #f8f8f8; }
+                        .total { text-align: right; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Invoice</h1>
+                    <div class="section details">
+                        <h3>Customer Details</h3>
+                        <p><strong>Name:</strong> ${order.user?.name || ''}</p>
+                        <p><strong>Email:</strong> ${order.user?.email || ''}</p>
+                        <p><strong>Phone:</strong> ${order.address?.phone || ''}</p>
+                        <p><strong>Address:</strong> ${order.address?.street}, ${order.address?.city}, ${order.address?.state}, ${order.address?.zip}, ${order.address?.country}</p>
+                    </div>
+
+                    <div class="section">
+                        <h3>Order Summary</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.orderItems.map((item, i) => `
+                                    <tr>
+                                        <td>${i + 1}</td>
+                                        <td>${item.product?.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>$${item.price}</td>
+                                        <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <p class="total">Total: $${order.total}</p>
+                    </div>
+
+                    <div class="section">
+                        <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+                        <p><strong>Paid:</strong> ${order.isPaid ? "Yes" : "No"}</p>
+                        ${order.isCouponUsed ? `<p><strong>Coupon:</strong> ${order.coupon.code} (${order.coupon.discount}% off)</p>` : ''}
+                        <p><strong>Status:</strong> ${order.status}</p>
+                        <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+                    </div>
+
+                    <p style="text-align:center; margin-top:40px;">Thank you for your purchase!</p>
+                </body>
+            </html>
+        `;
+        printWindow.document.write(invoiceHTML);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+
+
     useEffect(() => {
         fetchOrders()
     }, [])
@@ -174,11 +247,21 @@ export default function StoreOrders() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end">
-                            <button onClick={closeModal} className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300" >
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => handlePrintInvoice(selectedOrder)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                Print Invoice
+                            </button>
+                            <button
+                                onClick={closeModal}
+                                className="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300"
+                            >
                                 Close
                             </button>
                         </div>
+
                     </div>
                 </div>
             )}
