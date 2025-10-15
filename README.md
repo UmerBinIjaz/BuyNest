@@ -5,7 +5,6 @@
 BuyNest is a **full-stack, production-ready multi-vendor marketplace** built using **Next.js 15**, **Prisma**, **Stripe**, **Inngest**, and **Clerk**.
 It provides a complete eCommerce experience where sellers can create stores, manage products and orders, while buyers can shop, checkout, and track their purchases securely.
 
----
 
 ## 🚀 Features
 
@@ -39,7 +38,6 @@ It provides a complete eCommerce experience where sellers can create stores, man
 * Fully responsive UI using **Tailwind CSS**
 * Image optimization with **ImageKit**
 
----
 
 ## ⚙️ Tech Stack
 
@@ -57,11 +55,9 @@ It provides a complete eCommerce experience where sellers can create stores, man
 | **Utilities**        | Axios, date-fns, react-hot-toast                  |
 | **AI Integration**   | OpenAI (for store/product description assistance) |
 
----
 
 ## 🧩 Architecture Overview
 
-```
 📦 BuyNest
 ├── app/               # Page layouts for admin, store, and public views
 ├── components/        # Reusable UI components
@@ -73,7 +69,6 @@ It provides a complete eCommerce experience where sellers can create stores, man
 └── api/               # Server logic organized by feature (store, orders, products)
 ```
 
----
 
 ## 🧠 Core Concepts
 
@@ -92,7 +87,6 @@ It provides a complete eCommerce experience where sellers can create stores, man
 * **Clean State Management:**
   Uses Redux Toolkit feature slices for isolated, efficient state updates.
 
----
 
 ## 💻 Getting Started
 
@@ -147,7 +141,6 @@ npm run dev
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
 
 ## 🌍 Deployment
 
@@ -155,7 +148,6 @@ BuyNest is fully **serverless-ready** and deployed on **Vercel**.
 You can view the live demo here:
 🔗 **[https://buy-nest-yxiu.vercel.app/](https://buy-nest-yxiu.vercel.app/)**
 
----
 
 ## 🧱 Challenges & Learnings
 
@@ -165,7 +157,6 @@ You can view the live demo here:
 * Coordinating **async operations** using Inngest for reliability.
 * Building **modular architecture** for scalability and clean code separation.
 
----
 
 ## 🌟 What’s Next
 
@@ -173,7 +164,6 @@ You can view the live demo here:
 * 📊 Enhanced analytics dashboards
 * 📱 Mobile-optimized version
 
----
 
 ## 🤝 Contributing
 
@@ -184,8 +174,6 @@ If you find any bugs or have ideas for improvement, feel free to:
 * 🐛 Open an issue
 * 🔧 Submit a pull request
 
----
-
 ## 📬 Contact
 
 👨‍💻 **Developer:** Umer Bin Ijaz
@@ -194,14 +182,10 @@ If you find any bugs or have ideas for improvement, feel free to:
 🔗 **GitHub:** [UmerBinIjaz](https://github.com/UmerBinIjaz)
 🔗 **Live Demo:** [https://buy-nest-yxiu.vercel.app/](https://buy-nest-yxiu.vercel.app/)
 
----
-
 ### 🏁 Final Note
 
 Building **BuyNest** was an amazing experience that brought together backend logic, UI design, and deployment challenges into a single project.
 I hope it helps other developers exploring **Next.js**, **Prisma**, and **Stripe** integration in full-stack applications.
-
----
 
 Would you like me to include **screenshots** or **GIF previews** sections in this README (e.g., "🖼️ Preview" with homepage, dashboard, checkout, etc.)?
 It makes the repo look much more professional on GitHub.
